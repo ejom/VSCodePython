@@ -3,16 +3,28 @@ import pandas as pd
 import openpyxl
 
 #strip everything outside of <b> tags and store in list
-def findBodies(bulk:str):
-    bulk = bulk.replace("<", ">")
-    elements = bulk.split(">") 
+def findBodies(elements, chunks):
     numElements = []
     for element in elements:
         if element.isnumeric() or element.replace('.', '').isnumeric():
             numElements.append(element)
+    
+    if chunks > 1:
+        chunks -= 1
+        numElements = numElements + findBodies(scrapeElements(), chunks)
+    
+    #Disable the comment below to activate second filter num2 if the html number items are repeating.
+    return remAdj(numElements)
+
     return numElements
 
-    #return elements
+#Optional second filter function to remove adjacent elements that are the same:
+def remAdj(nList):
+    numElements = []
+    for i, element in enumerate(nList):
+        if element != nList[i-1]:
+            numElements.append(element)
+    return numElements
 
 def makeArr(nList):
     goodList = False
@@ -56,9 +68,23 @@ def makeTable(nArr):
             goodTable = True
     return nTable
 
-HTMLCode = input("Please copy the HTML code containing the table you wish to export\n")
-
-nList = findBodies(HTMLCode)
+def scrapeElements():
+    HTMLCode = input("Please copy the HTML code containing the table you wish to export\n")
+    bulk = HTMLCode.replace("<", ">")
+    elements = bulk.split(">") 
+    return elements
+#set chunks to more than 1 to split into chunks for really long html inputs. 
+# The max for each chunk appears to be about 15,000 characters 
+#You will have to spacify the number of chunks you are going to input
+#and input each chunk individually
+print("please input the number of chunks. Each chunk corrisponds to 15,000 characters.")
+chunks = input()
+if chunks.isnumeric():
+    chunks = int(chunks)
+else:
+    while not chunks.isnumeric():
+        chunks = input("please enter only a number")
+nList = findBodies(scrapeElements(), chunks)
 nArr = makeArr(nList)
 nTable = makeTable(nArr)
 
