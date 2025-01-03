@@ -59,6 +59,11 @@ def makeTable(nArr):
         cols = int(cols)
         rows = int(rows)
 
+        # Calculate the total number of elements needed
+        total_elements = rows * cols
+        # Pad the array with zeros if necessary
+        if nArr.size < total_elements:
+            nArr = np.pad(nArr, (0, total_elements - nArr.size), 'constant')
         nArr = nArr.reshape(rows, cols)
         nTable = pd.DataFrame(nArr)
         print(nTable)
