@@ -1,87 +1,84 @@
-from tkinter import *
-import tkinter as tk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import cmath
 
-# Function to render LaTeX
-def render_latex(event=None):
-    latex_text = entry.get()
-    latex_text = f"${latex_text}$"
-    
-    fig.clear()
-    ax = fig.add_subplot(111)
-    try:
-        ax.text(0.5, 0.5, latex_text, fontsize=20, ha='center', va='center')
-        ax.axis('off')
-        canvas.draw()
-        error_label.config(text="")
-    except Exception as e:
-        error_label.config(text="Invalid LaTeX!", fg="red")
+# Given roots
+x_real = [-2.1038]
+x_imag = [1.0519 - 0.5652j, 1.0519 + 0.5652j]
+y_real = [-np.sqrt(3), np.sqrt(3)]
+y_imag = []
 
-# Function to insert clicked LaTeX with placeholders
-def insert_latex(text, event=None):
-    entry.insert(tk.END, text[1:-1])
-    render_latex(event)
+# Function to compute w(z) for real x and imaginary y
+def w_real_x_imag_y(x, y_imag, alpha=1):
+    z = x + y_imag * 1j
+    r = abs(z)
+    theta = cmath.phase(z)
+    if theta < 0:
+        theta += 2 * np.pi
+    theta += alpha
+    if theta > 2 * np.pi:
+        theta -= 2 * np.pi
+    return np.log(r) + 1j * theta
 
-# Function to dynamically create canvases that render LaTeX
-def create_latex_buttons(event=None):
-    a, b = "a", "b"
-    # This can be expanded upon by adding more groups of symbols and functions
-    symbolset = [
-        [f"$\\sqrt{{{a}}}$",
-         f"$\\sqrt[{{{a}}}]{{{b}}}$",
-         f"${{{a}}}^{{{b}}}$"],
-        [f"$\\frac{{{a}}}{{{b}}}$",
-         f"$\\sum_{{{b}}}^{{{a}}}$",
-         f"$\\int_{{{b}}}^{{{a}}}$"],
-        [f"$\\alpha$",
-         f"$\\beta$",
-         f"$\\gamma$"]
-        ]
-    row = 0
-    for symbols in symbolset:
-        col = 0
-        for symbol in symbols:
-            f = plt.figure(figsize=(0.5, 0.5))
-            c = FigureCanvasTkAgg(f, master=button_frame)
-            a = f.add_subplot(111)
-            a.text(0.5, 0.5, symbol, fontsize=10, ha='center', va='center')
-            a.axis('off')
-            c.draw()
-            c.get_tk_widget().bind("<Button-1>", lambda event, s=symbol: insert_latex(s, event))
-            c.get_tk_widget().grid(row=row, column=col, padx=5, pady=5)
-            col += 1
-        row += 1
+# Function to compute w(z) for imaginary x and real y
+def w_imag_x_real_y(y, x_imag, alpha=1):
+    z = y + x_imag * 1j
+    r = abs(z)
+    theta = cmath.phase(z)
+    if theta < 0:
+        theta += 2 * np.pi
+    theta += alpha
+    if theta > 2 * np.pi:
+        theta -= 2 * np.pi
+    return np.log(r) + 1j * theta
 
-# Create the main window
-root = Tk()
-root.title("LaTeX in Tkinter")
-root.geometry("700x700")
+# Create meshgrid for plotting
+X_real, Y_imag = np.meshgrid(np.linspace(-3, 3, 100), np.linspace(-3, 3, 100))
+X_imag, Y_real = np.meshgrid(np.linspace(-3, 3, 100), np.linspace(-3, 3, 100))
 
-# Create a frame for the input
-frame = Frame(root)
-frame.pack(pady=20)
+# Evaluate w(z) for real x and imaginary y
+W_real_x_imag_y_real = np.real(w_real_x_imag_y(X_real, Y_imag))
+W_real_x_imag_y_imag = np.imag(w_real_x_imag_y(X_real, Y_imag))
 
-# Entry widget for LaTeX input
-entry = Entry(frame, width=50)
-entry.pack(side=LEFT, padx=10)
-entry.bind("<KeyRelease>", render_latex)
+# Evaluate w(z) for imaginary x and real y
+W_imag_x_real_y_real = np.real(w_imag_x_real_y(Y_real, X_imag))
+W_imag_x_real_y_imag = np.imag(w_imag_x_real_y(Y_real, X_imag))
 
-# Label to display errors
-error_label = Label(frame, text="", fg="red")
-error_label.pack(side=LEFT, padx=10)
+# Plotting
+fig = plt.figure(figsize=(16, 12))
 
-# Create a figure for displaying LaTeX
-fig = plt.figure(figsize=(5, 3))
-canvas = FigureCanvasTkAgg(fig, master=root)
-canvas.get_tk_widget().pack()
+# First plot: Real component of w as a function of real x and imaginary y
+ax1 = fig.add_subplot(2, 2, 1, projection='3d')
+ax1.plot_surface(X_real, Y_imag, W_real_x_imag_y_real, cmap='viridis')
+ax1.set_title('Real component of w(z) for real x and imaginary y')
+ax1.set_xlabel('Real x')
+ax1.set_ylabel('Imaginary y')
+ax1.set_zlabel('Real w')
 
-# Create a frame for the buttons
-button_frame = Frame(root)
-button_frame.pack(padx=10, pady=10)
+# Second plot: Imaginary component of w as a function of real x and imaginary y
+ax2 = fig.add_subplot(2, 2, 2, projection='3d')
+ax2.plot_surface(X_real, Y_imag, W_real_x_imag_y_imag, cmap='viridis')
+ax2.set_title('Imaginary component of w(z) for real x and imaginary y')
+ax2.set_xlabel('Real x')
+ax2.set_ylabel('Imaginary y')
+ax2.set_zlabel('Imaginary w')
 
-# Create buttons
-create_latex_buttons()
+# Third plot: Real component of w as a function of imaginary x and real y
+ax3 = fig.add_subplot(2, 2, 3, projection='3d')
+ax3.plot_surface(X_imag, Y_real, W_imag_x_real_y_real, cmap='viridis')
+ax3.set_title('Real component of w(z) for imaginary x and real y')
+ax3.set_xlabel('Imaginary x')
+ax3.set_ylabel('Real y')
+ax3.set_zlabel('Real w')
 
-# Start the Tkinter main loop
-root.mainloop()
+# Fourth plot: Imaginary component of w as a function of imaginary x and real y
+ax4 = fig.add_subplot(2, 2, 4, projection='3d')
+ax4.plot_surface(X_imag, Y_real, W_imag_x_real_y_imag, cmap='viridis')
+ax4.set_title('Imaginary component of w(z) for imaginary x and real y')
+ax4.set_xlabel('Imaginary x')
+ax4.set_ylabel('Real y')
+ax4.set_zlabel('Imaginary w')
+
+plt.tight_layout()
+plt.show()
