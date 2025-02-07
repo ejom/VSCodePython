@@ -1,84 +1,50 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import cmath
+from sympy import Symbol, Matrix, expand, I
 
-# Given roots
-x_real = [-2.1038]
-x_imag = [1.0519 - 0.5652j, 1.0519 + 0.5652j]
-y_real = [-np.sqrt(3), np.sqrt(3)]
-y_imag = []
+def find_characteristic_equation_and_eigenvalues(matrix):
+    # Convert the matrix to a NumPy array for eigenvalue calculation
+    A_np = np.array(matrix, dtype=float)
+    
+    # Calculate eigenvalues using NumPy
+    eigenvalues = np.linalg.eigvals(A_np)
+    
+    # Generate the characteristic equation using SymPy
+    λ = Symbol('λ')
+    n = len(matrix)
+    
+    # Convert to SymPy matrix and create characteristic matrix
+    A = Matrix(matrix)
+    I = Matrix.eye(n)
+    char_matrix = A - λ * I
+    
+    # Calculate the determinant symbolically
+    char_equation = expand(char_matrix.det())
+    
+    return char_equation, eigenvalues
 
-# Function to compute w(z) for real x and imaginary y
-def w_real_x_imag_y(x, y_imag, alpha=1):
-    z = x + y_imag * 1j
-    r = abs(z)
-    theta = cmath.phase(z)
-    if theta < 0:
-        theta += 2 * np.pi
-    theta += alpha
-    if theta > 2 * np.pi:
-        theta -= 2 * np.pi
-    return np.log(r) + 1j * theta
+# The given matrix
+matrix = [
+    [7, -3, 3, -6],
+    [5, 5, -2, -9],
+    [-7, 4, 6, -3],
+    [-8, 4, 5, 8]
+]
 
-# Function to compute w(z) for imaginary x and real y
-def w_imag_x_real_y(y, x_imag, alpha=1):
-    z = y + x_imag * 1j
-    r = abs(z)
-    theta = cmath.phase(z)
-    if theta < 0:
-        theta += 2 * np.pi
-    theta += alpha
-    if theta > 2 * np.pi:
-        theta -= 2 * np.pi
-    return np.log(r) + 1j * theta
+# Find characteristic equation and eigenvalues
+char_equation, eigenvalues = find_characteristic_equation_and_eigenvalues(matrix)
 
-# Create meshgrid for plotting
-X_real, Y_imag = np.meshgrid(np.linspace(-3, 3, 100), np.linspace(-3, 3, 100))
-X_imag, Y_real = np.meshgrid(np.linspace(-3, 3, 100), np.linspace(-3, 3, 100))
+# Print results
+print("Characteristic Equation:")
+print(f"P(λ) = {char_equation}")
+print("\nEigenvalues:")
+for i, ev in enumerate(eigenvalues, 1):
+    print(f"λ{i} = {ev}")
 
-# Evaluate w(z) for real x and imaginary y
-W_real_x_imag_y_real = np.real(w_real_x_imag_y(X_real, Y_imag))
-W_real_x_imag_y_imag = np.imag(w_real_x_imag_y(X_real, Y_imag))
-
-# Evaluate w(z) for imaginary x and real y
-W_imag_x_real_y_real = np.real(w_imag_x_real_y(Y_real, X_imag))
-W_imag_x_real_y_imag = np.imag(w_imag_x_real_y(Y_real, X_imag))
-
-# Plotting
-fig = plt.figure(figsize=(16, 12))
-
-# First plot: Real component of w as a function of real x and imaginary y
-ax1 = fig.add_subplot(2, 2, 1, projection='3d')
-ax1.plot_surface(X_real, Y_imag, W_real_x_imag_y_real, cmap='viridis')
-ax1.set_title('Real component of w(z) for real x and imaginary y')
-ax1.set_xlabel('Real x')
-ax1.set_ylabel('Imaginary y')
-ax1.set_zlabel('Real w')
-
-# Second plot: Imaginary component of w as a function of real x and imaginary y
-ax2 = fig.add_subplot(2, 2, 2, projection='3d')
-ax2.plot_surface(X_real, Y_imag, W_real_x_imag_y_imag, cmap='viridis')
-ax2.set_title('Imaginary component of w(z) for real x and imaginary y')
-ax2.set_xlabel('Real x')
-ax2.set_ylabel('Imaginary y')
-ax2.set_zlabel('Imaginary w')
-
-# Third plot: Real component of w as a function of imaginary x and real y
-ax3 = fig.add_subplot(2, 2, 3, projection='3d')
-ax3.plot_surface(X_imag, Y_real, W_imag_x_real_y_real, cmap='viridis')
-ax3.set_title('Real component of w(z) for imaginary x and real y')
-ax3.set_xlabel('Imaginary x')
-ax3.set_ylabel('Real y')
-ax3.set_zlabel('Real w')
-
-# Fourth plot: Imaginary component of w as a function of imaginary x and real y
-ax4 = fig.add_subplot(2, 2, 4, projection='3d')
-ax4.plot_surface(X_imag, Y_real, W_imag_x_real_y_imag, cmap='viridis')
-ax4.set_title('Imaginary component of w(z) for imaginary x and real y')
-ax4.set_xlabel('Imaginary x')
-ax4.set_ylabel('Real y')
-ax4.set_zlabel('Imaginary w')
-
-plt.tight_layout()
-plt.show()
+# Verify eigenvalues by substituting into characteristic equation
+print("\nVerification by substituting eigenvalues into characteristic equation:")
+λ = Symbol('λ')
+for i, ev in enumerate(eigenvalues, 1):
+    # Convert numpy complex to sympy complex
+    sympy_ev = complex(ev.real) + I * complex(ev.imag)
+    result = complex(char_equation.subs(λ, sympy_ev).evalf())
+    print(f"P({ev}) = {abs(result):.2e}")  # Using absolute value for clearer verification
