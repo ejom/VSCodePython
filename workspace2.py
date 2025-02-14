@@ -1,88 +1,43 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import cumulative_trapezoid
 
-def simplex_algorithm():
-    # Initial tableau setup based on the problem
-    # The tableau structure follows what's described in the article where
-    # we set up an augmented matrix
-    tableau = np.array([
-        [1, 1, 1, 1, 1, 0, 5],    # First constraint
-        [1, 2, 3, 2, 0, 1, 6],    # Second constraint
-        [-3, 3, 1, -4, 0, 0, 0]   # Objective function (negated)
-    ], dtype=float)
-    
-    # Main simplex loop
-    while not is_optimal(tableau):
-        # Select pivot column (entering variable)
-        pivot_col = get_pivot_column(tableau)
-        if pivot_col == -1:
-            return "Unbounded solution"
-        
-        # Select pivot row (leaving variable)
-        pivot_row = get_pivot_row(tableau, pivot_col)
-        if pivot_row == -1:
-            return "No solution exists"
-        
-        # Perform pivot operation
-        tableau = pivot(tableau, pivot_row, pivot_col)
-        
-    return get_solution(tableau)
+# Define the function
+def f(x):
+    return x * np.sin(np.exp(0.1 * x))
 
-def is_optimal(tableau):
-    # Check if all coefficients in objective row are non-negative
-    return all(x >= 0 for x in tableau[-1, :-1])
+# Define the x range from -50 to 50
+x_vals = np.linspace(-50, 50, 500)  # More points for a smoother curve
 
-def get_pivot_column(tableau):
-    # Find most negative coefficient in objective row
-    objective_row = tableau[-1, :-1]
-    min_val = min(objective_row)
-    if min_val >= 0:
-        return -1
-    return np.argmin(objective_row)
+# Compute function values
+y_vals = f(x_vals)
 
-def get_pivot_row(tableau, pivot_col):
-    # Use minimum ratio test
-    ratios = []
-    rhs = tableau[:-1, -1]
-    column = tableau[:-1, pivot_col]
-    
-    for i in range(len(rhs)):
-        if column[i] <= 0:
-            ratios.append(float('inf'))
-        else:
-            ratios.append(rhs[i] / column[i])
-    
-    if min(ratios) == float('inf'):
-        return -1
-    return ratios.index(min(ratios))
+# Find the index where x = 0
+zero_index = np.argmin(np.abs(x_vals))
 
-def pivot(tableau, pivot_row, pivot_col):
-    new_tableau = np.zeros_like(tableau)
-    pivot_element = tableau[pivot_row, pivot_col]
-    
-    # Pivot row operation
-    new_tableau[pivot_row] = tableau[pivot_row] / pivot_element
-    
-    # Other rows operations
-    for i in range(len(tableau)):
-        if i != pivot_row:
-            new_tableau[i] = tableau[i] - tableau[i, pivot_col] * new_tableau[pivot_row]
-    
-    return new_tableau
+# Compute the numerical integral from x = 0
+integral_vals = cumulative_trapezoid(y_vals, x_vals, initial=0)
+integral_vals -= integral_vals[zero_index]  # Shift so that F(0) = 0
 
-def get_solution(tableau):
-    solution = np.zeros(4)  # For x, y, z, w
-    rhs = tableau[:, -1]
-    
-    for i in range(4):
-        col = tableau[:, i]
-        if sum(abs(col)) == 1:
-            row = np.where(col == 1)[0][0]
-            solution[i] = rhs[row]
-    
-    objective_value = -tableau[-1, -1]  # Note: we negated the objective function
-    return solution, objective_value
+def F(x):
+    return integral_vals
 
-# Run the algorithm
-solution, objective_value = simplex_algorithm()
-print(f"Solution (x, y, z, w): {solution}")
-print(f"Maximum value: {objective_value}")
+# Plot the function and its integral
+#plt.figure(figsize=(10, 6))
+#plt.plot(x_vals, y_vals, label=r'$f(x) = x \sin(e^{0.1x})$', color='blue')
+##plt.plot(x_vals, integral_vals, label=r'$F(x) = \int_{0}^{x} f(t) dt$', color='red')
+#plt.axhline(0, color='black', linewidth=0.5)
+#plt.axvline(0, color='black', linewidth=0.5)
+#plt.legend()
+#plt.grid()
+#plt.xlabel('x')
+#plt.ylabel('y')
+#plt.title('Function and Its Integral with $F(0) = 0$')
+#plt.show()
+
+eval_x_vals = np.arange(-50, 51, 10)  # Values: -50, -40, ..., 50
+
+print(eval_x_vals)
+
+print(f(eval_x_vals))
+print(F(eval_x_vals))

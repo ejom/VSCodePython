@@ -1,8 +1,9 @@
 from sympy import *
-from sympy.abc import u, v, z
-eq_z = Eq(1 - (asin(u)*acos(v))/ln(3), z)
-eq_v = Eq((asin(u)+asin(1-tan(1)))*(asin(u)-tan(csc(3)))**2*(z*asin(u)-z), v)
-eq_f = Eq(u+v-tan(z)+z**2, 1)
-solutions = solve([eq_f, eq_v, eq_z], u, v, z, dict=True)
+from sympy.abc import x, y, z, a
+f_x = Eq(y**2+sin(z)*exp(x*sin(z))-2*a*x, 0)
+f_y = Eq(2*x*y-2*a*y, 0)
+f_z = Eq(x*cos(z)*exp(x*sin(z))-2*a*z, 0)
+g = Eq(x**2+y**2+z**2, 4)
+solutions = solve([f_x, f_y, f_z, g], x, y, z, a, dict=True)
 print(solutions)
 
