@@ -1,41 +1,20 @@
-import numpy as np
-import pandas as pd
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+class Hash:
+	def __init__(self, s: str):
+		self.hash_value = 0
+		self.p, self.m = 31, 10**9 + 7
+		self.length = len(s)
+		hash_so_far = 0
+		p_pow = 1
+		for i in range(self.length):
+			hash_so_far = (hash_so_far + (1 + ord(s[i]) - ord('a')) * p_pow) % self.m
+			p_pow = (p_pow * self.p) % self.m
+		self.hash_value = hash_so_far
+	
+	def __eq__(self, other):
+		return self.hash_value == other.hash_value
 
-# Sample dataset (binary classification)
-data = {
-    'feature1': [0.1, 0.2, 0.3, 0.4, 0.5],
-    'feature2': [0.5, 0.4, 0.3, 0.2, 0.1],
-    'label': [0, 0, 1, 1, 1]  # Binary labels
-}
 
-# Convert to DataFrame
-df = pd.DataFrame(data)
-
-# Features (X) and Labels (y)
-X = df[['feature1', 'feature2']].values  # Input features
-y = df['label'].values  # Output labels
-
-# Create a Sequential model
-model = Sequential()
-
-# Add input layer and hidden layer
-model.add(Dense(8, input_dim=2, activation='relu'))  # 2 input features, 8 neurons in hidden layer
-
-# Add output layer
-model.add(Dense(1, activation='sigmoid'))  # Output layer for binary classification
-
-# Compile the model
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-# Train the model
-model.fit(X, y, epochs=100, batch_size=1, verbose=1)
-
-# Example input for prediction
-test_data = np.array([[0.2, 0.4]])  # New input data
-
-# Make a prediction
-prediction = model.predict(test_data)
-predicted_label = (prediction > 0.5).astype(int)  # Convert probability to binary output
-print(f"Predicted label: {predicted_label[0][0]}")
+if __name__ == '__main__':
+	s = "geeksforgeeks"
+	h = Hash(s)
+	print("Hash value of {} is {}".format(s, h.hash_value))

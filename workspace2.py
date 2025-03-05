@@ -1,43 +1,54 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.integrate import cumulative_trapezoid
+import pandas as pd
 
-# Define the function
-def f(x):
-    return x * np.sin(np.exp(0.1 * x))
+def sieve(limit):
+    """Generate a list of prime numbers up to 'limit' using the Sieve of Atkin."""
+    if limit < 2:
+        return []
+    
+    res = [False] * (limit + 1)
+    res[2] = res[3] = True
 
-# Define the x range from -50 to 50
-x_vals = np.linspace(-50, 50, 500)  # More points for a smoother curve
+    for i in range(1, int(limit**0.5) + 1):
+        for j in range(1, int(limit**0.5) + 1):
+            n = (4 * i * i) + (j * j)
+            if n <= limit and (n % 12 == 1 or n % 12 == 5):
+                res[n] ^= True
 
-# Compute function values
-y_vals = f(x_vals)
+            n = (3 * i * i) + (j * j)
+            if n <= limit and n % 12 == 7:
+                res[n] ^= True
 
-# Find the index where x = 0
-zero_index = np.argmin(np.abs(x_vals))
+            n = (3 * i * i) - (j * j)
+            if i > j and n <= limit and n % 12 == 11:
+                res[n] ^= True
 
-# Compute the numerical integral from x = 0
-integral_vals = cumulative_trapezoid(y_vals, x_vals, initial=0)
-integral_vals -= integral_vals[zero_index]  # Shift so that F(0) = 0
+    for r in range(5, int(limit**0.5) + 1):
+        if res[r]:
+            for k in range(r * r, limit + 1, r * r):
+                res[k] = False
 
-def F(x):
-    return integral_vals
+    return [i for i in range(limit + 1) if res[i]]  # Return list of prime numbers
 
-# Plot the function and its integral
-#plt.figure(figsize=(10, 6))
-#plt.plot(x_vals, y_vals, label=r'$f(x) = x \sin(e^{0.1x})$', color='blue')
-##plt.plot(x_vals, integral_vals, label=r'$F(x) = \int_{0}^{x} f(t) dt$', color='red')
-#plt.axhline(0, color='black', linewidth=0.5)
-#plt.axvline(0, color='black', linewidth=0.5)
-#plt.legend()
-#plt.grid()
-#plt.xlabel('x')
-#plt.ylabel('y')
-#plt.title('Function and Its Integral with $F(0) = 0$')
-#plt.show()
+def pick_prime(primes, min_size=1000):
+    """Returns the smallest prime >= min_size, or the largest prime in the list if none exist."""
+    for prime in primes:
+        if prime >= min_size:
+            return prime
+    return primes[-1] if primes else None
 
-eval_x_vals = np.arange(-50, 51, 10)  # Values: -50, -40, ..., 50
+def hash_function(string, modulus):
+    """Implements polynomial rolling hash function."""
+    hash_value = 5381
+    for char in string:
+        hash_value = ((hash_value << 5) + hash_value) ^ ord(char)  # hash * 33 XOR char
+    return hash_value % modulus
 
-print(eval_x_vals)
+if __name__ == '__main__':
+    primes = sieve(10)  # Generate prime numbers up to 10,000
+    modulus = pick_prime(primes, 1000)  # Pick a suitable prime modulus
 
-print(f(eval_x_vals))
-print(F(eval_x_vals))
+    test_array = ["alpha", "beta", "gamma", "delta", "epsilon"]
+
+    for string in test_array:
+        hash_value = hash_function(string, modulus)
+        print(f"Hash of '{string}' is {hash_value}")
