@@ -76,7 +76,19 @@ class Player:
         self.chips = Game.startingChips
     cards = [(0, 0), (0, 0)]
     def bet(self, amount):
+        if self.chips < amount:
+            print("You are all in")
+            amount = self.chips
         self.chips -= amount
+        self.curBet += amount
+        print(f"You bet {amount} chips. You have {self.chips} chips remaining.")
+    def draw(self):
+        self.cards[0] = random.choice(Game.deck)
+        Game.deck.remove(self.cards[0])
+        self.cards[1] = random.choice(Game.deck)
+        Game.deck.remove(self.cards[1])
+    fold = False
+    curBet = 0
 
 #Functions
 def setup():
@@ -114,12 +126,10 @@ def setup():
             break
         except:
             print("Invalid input. Please enter only a number.")
-
 #Script
 setup()
 cycle = 1
 hand = 1
-"""
 #For each hand
 while True:
     if (cycle>Game.maxCycles and Game.maxCycles !=0) or Game.haveWinner:
@@ -136,36 +146,67 @@ while True:
         else:
             hand += 1
 
+def playTurn(Game, hand, round, tBet, i):
+    player = Game.players
+    input(f"It is {player[i].name}'s turn. Press enter when you are ready.")
+    print(f"Your cards are {Game.card[player[i].cards[0]]} and {Game.card[player[i].cards[1]]}.")
+    if (round==0 and i==hand):
+        print("Since you are the big blind, you must bet the ante")
+        tBet += player[i].bet(Game.ante)
+    else:
+        print(f"The current bet is {tBet}.")
+        if tBet == 0:
+            action = input("Do you want to check (0) or bet (1)?")
+            if action == '1':
+                while True:
+                    bet = input("How much do you want to bet?")
+                    try:
+                        bet = int(bet)
+                        tBet += player[i].bet(bet)
+                        break
+                    except:
+                        print("Invalid input. Please enter only a number.")
+        else:
+            action = input("Do you want to call/raise (1) or fold (0)?")
+            if action == '1':
+                while True:
+                    nRaise = input("Enter the amount you would like to raise (>=0). If you call, enter 0")
+                    try: 
+                        nRaise = int(nRaise)
+                        if nRaise < 0:
+                            continue
+                        tBet += player[i].bet(tBet+nRaise-player[i].curBet)
+                        break
+                    except:
+                        print("Invalid input. Please enter only a number.")
+            else:
+                player[i].fold = True
+
+def playRound(Game, hand, round):
+    tBet = 0
+    player = Game.players
+    for i in range(Game.nPlayers):
+        player[i].curBet = 0
+    #each turn
+    for i in [list(range(hand, Game.nPlayers))+list(range(0, hand))]:
+        if not player[i].fold:
+            playTurn(Game, hand, round, tBet, i)
+
 def playHand(Game, hand):
-    # Round 1
     #decide ante, dealer, and blinds
     player = Game.players
     print(f"{player[hand-1].name} is the dealer.")
     print(f"{player[hand].name} is the big blind.")
-    #for each turn
+    pot = 0
+    #everyone draws cards
     for i in range(Game.nPlayers):
         #draw 2 cards
-        player[i].cards[0] = random.choice(Game.deck)
-        player[i].cards[1] = random.choice(Game.deck)
-        print(f"{player[i].name} has drawn {Game.card[player[i].cards[0]]} and {Game.card[player[i].cards[1]]}.")
-        #bet or check/fold
-        if i == 0:
-            while True:
-                bet = input(f"{player[i].name}, please enter the amount you would like to bet (minimum bet is {Game.ante}):")
-                try:
-                    bet = int(bet)
-                    if bet < Game.ante:
-                        print("Invalid input. Please enter a number greater than or equal to the ante.")
-                        continue
-                    break
-                except:
-                    print("Invalid input. Please enter only a number.")
-            player[i].bet(bet)
-        else:
-            print(f"{player[i].name} has checked.")
-    #Draw 2 cards
-    # Bet or check/fold 
+        player[i].draw()
+    #for each round
+    for round in range(5):
+        playRound(Game, hand, round)
 
+    # Round 1
     # Round 2 
     # Reveal 3 cards to each player
     # for each turn
@@ -192,4 +233,4 @@ def playHand(Game, hand):
     # Reveal remaining players' cards
     # Determine the winner
     # award winner with pot
-"""
+    #Anyone with no chips is out
