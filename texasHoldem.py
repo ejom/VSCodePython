@@ -1,6 +1,5 @@
 import random
 
-#Texas holdem poker game by Ethan Olsen
 # This game will function like a pass and play game. New lines will be printed to "clear" the terminal. 
 # Create a deck of cards
 #objects
