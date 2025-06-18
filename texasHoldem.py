@@ -1,235 +1,152 @@
 import random
 
-# This game will function like a pass and play game. New lines will be printed to "clear" the terminal. 
-# Create a deck of cards
-#objects
-class Game:
-    deck = ((rank, suit) for rank in range(1, 14) for suit in range(1, 5))
+suits = ["Hearts", "Clubs", "Diamonds", "Spades"]
+ranks = list(range(1, 14))
+
+class Cards:
+    def __init__(self):
+        self.deck = []
+        for suit in suits:
+            for rank in ranks:
+                self.deck.append((rank, suit))
+    def draw(self):
+        card = self.deck[0]
+        self.deck.remove(card)
+        return card
     def shuffle(self):
-        self.deck = ((rank, suit) for rank in range(1, 14) for suit in range(1, 5))
         random.shuffle(self.deck)
-    card = {
-        (1, 1): "Ace of Spades",
-        (2, 1): "2 of Spades",
-        (3, 1): "3 of Spades",
-        (4, 1): "4 of Spades",
-        (5, 1): "5 of Spades",
-        (6, 1): "6 of Spades",
-        (7, 1): "7 of Spades",
-        (8, 1): "8 of Spades",
-        (9, 1): "9 of Spades",
-        (10, 1): "10 of Spades",
-        (11, 1): "Jack of Spades",
-        (12, 1): "Queen of Spades",
-        (13, 1): "King of Spades",
-        (1, 2): "Ace of Hearts",
-        (2, 2): "2 of Hearts",
-        (3, 2): "3 of Hearts",
-        (4, 2): "4 of Hearts",
-        (5, 2): "5 of Hearts",
-        (6, 2): "6 of Hearts",
-        (7, 2): "7 of Hearts",
-        (8, 2): "8 of Hearts",
-        (9, 2): "9 of Hearts",
-        (10, 2): "10 of Hearts",
-        (11, 2): "Jack of Hearts",
-        (12, 2): "Queen of Hearts",
-        (13, 2): "King of Hearts",
-        (1, 3): "Ace of Clubs",
-        (2, 3): "2 of Clubs",
-        (3, 3): "3 of Clubs",
-        (4, 3): "4 of Clubs",
-        (5, 3): "5 of Clubs",
-        (6, 3): "6 of Clubs",
-        (7, 3): "7 of Clubs",
-        (8, 3): "8 of Clubs",
-        (9, 3): "9 of Clubs",
-        (10, 3): "10 of Clubs",
-        (11, 3): "Jack of Clubs",
-        (12, 3): "Queen of Clubs",
-        (13, 3): "King of Clubs",
-        (1, 4): "Ace of Diamonds",
-        (2, 4): "2 of Diamonds",
-        (3, 4): "3 of Diamonds",
-        (4, 4): "4 of Diamonds",
-        (5, 4): "5 of Diamonds",
-        (6, 4): "6 of Diamonds",
-        (7, 4): "7 of Diamonds",
-        (8, 4): "8 of Diamonds",
-        (9, 4): "9 of Diamonds",
-        (10, 4): "10 of Diamonds",
-        (11, 4): "Jack of Diamonds",
-        (12, 4): "Queen of Diamonds",
-        (13, 4): "King of Diamonds",
-    }
-    nPlayers = 0
-    players = []
-    startingChips = 0
-    maxCycles = 0
-    ante = 5
-    haveWinner = False
 
 class Player:
-    def __init__(self, name):
-        self.name = name
-        self.chips = Game.startingChips
-    cards = [(0, 0), (0, 0)]
+    def __init__(self, name, money):
+        if isinstance(name, str) and name != "":
+            self.name = name
+        else:
+            raise TypeError("Player name must be a string")
+        if isinstance(money, int) and money>0: 
+            self.money = money
+        else:
+            raise TypeError("money must be an integer")
+    def __str__(self):
+        return f"{self.name} has {self.money} left."
     def bet(self, amount):
-        if self.chips < amount:
-            print("You are all in")
-            amount = self.chips
-        self.chips -= amount
-        self.curBet += amount
-        print(f"You bet {amount} chips. You have {self.chips} chips remaining.")
-    def draw(self):
-        self.cards[0] = random.choice(Game.deck)
-        Game.deck.remove(self.cards[0])
-        self.cards[1] = random.choice(Game.deck)
-        Game.deck.remove(self.cards[1])
-    fold = False
-    curBet = 0
-
-#Functions
-def setup():
-    #determine number of players
-    while (True):
-        nPlayers = input("Please enter the number of players (only the number, must be at least 2):")
-        try:
-            Game.nPlayers = int(nPlayers)
-            if Game.nPlayers < 2:
-                print("Invalid input. Must have at least 2 players.")
-                continue
-            break
-        except:
-            print("Invalid input. Please enter a number.")
-    #determine starting chips
-    while (True):
-        startingChips = input("Please enter the number of starting chips (only the number):")
-        try:
-            Game.startingChips = int(startingChips)
-            if Game.startingChips < 5:
-                print("Invalid input. Must have at least 5 chips.")
-                continue
-            break
-        except:
-            print("Invalid input. Please enter only a number.")
-    #determine names of players
-    for i in range(Game.nPlayers):
-        name = input(f"Please enter the name of player {i+1}:")
-        Game.players.append(Player(name))
-    #determine number of rounds
-    while (True):
-        maxCycles = input("Please enter the number of cycles (only the number). 1 cycle occers after each player plays a hand. If you wish to play until only one player has chips, enter 0:")
-        try:
-            Game.maxCycles = int(maxCycles)
-            break
-        except:
-            print("Invalid input. Please enter only a number.")
-#Script
-setup()
-cycle = 1
-hand = 1
-#For each hand
-while True:
-    if (cycle>Game.maxCycles and Game.maxCycles !=0) or Game.haveWinner:
-        endGame()
-        break
-    else: 
-        playHand(Game(), hand)
-        if hand>=Game.nPlayers:
-            hand = 1
-            if Game.maxCycles != 0:
-                cycle += 1
-            # The ante will start at 5c and will double each cycle 
-            Game.ante *= 2
+        if self.money >= amount:
+            self.money -= amount
+            return amount
         else:
-            hand += 1
+            print(f"{self.name} doesn't have {amount}. Would you like to go all in and bet {self.money}?")
+            allIn = input("Type y or yes if you are going all in or anything else if not.")
+            if allIn[0].lower() == 'y':
+                print("You are all in.")
+                amount = self.money
+                self.money = 0
+                return (amount, True)
+            else: 
+                print("You bet nothing.")
+                return 0
 
-def playTurn(Game, hand, round, tBet, i):
-    player = Game.players
-    input(f"It is {player[i].name}'s turn. Press enter when you are ready.")
-    print(f"Your cards are {Game.card[player[i].cards[0]]} and {Game.card[player[i].cards[1]]}.")
-    if (round==0 and i==hand):
-        print("Since you are the big blind, you must bet the ante")
-        tBet += player[i].bet(Game.ante)
-    else:
-        print(f"The current bet is {tBet}.")
-        if tBet == 0:
-            action = input("Do you want to check (0) or bet (1)?")
-            if action == '1':
+
+def makePlayers(numPlayers, startMoney=0):
+    players = list(range(numPlayers))
+    for i in range(numPlayers):
+        while True:
+            try:
+                name = input(f"Enter the name for player {i+1}: ")
+                money = startMoney if startMoney else int(input("Enter your starting cash: "))
+                break
+            except:
+                print("Invalid input. Try again.")
+        players[i] = Player(name, money)
+    print("Players recap:")
+    print(*players)
+    return players
+
+def round(players):
+    roundPot=0
+    currentBet=0
+    playerBets = [0] * len(players)
+    playersIn = [1] * len(players)
+
+    while True:
+        for i, player in enumerate(players):
+            #IMPLEMENT?
+            #Right now if the previous player folded the next player has an 
+            # oppertunity to bet even if all the bets are the same (as those conditions are skipped).
+            #Maybe make it not so?
+
+            #If you folded you dont get a turn
+            if not playersIn[i]:
+                continue
+            #Update the pot with everyone's bets
+            roundPot = sum(playerBets)
+            #Reset this in case the last player folded
+            didFold = False
+
+            print()
+            print("-"*20+f"{players[i].name}'s turn"+"-"*20)
+            print(player)
+            #Recap the currentBet and player's bet
+            print(f"Your bet so far is ${playerBets[i]}. The current bet on the pot is ${currentBet}")
+            #Determine if the player can bet/check or if they need to match/raise/fold
+            #bet/check
+            if playerBets[i] == currentBet:
+                print("You can bet (enter a number>0) or check (enter 0)?")
                 while True:
-                    bet = input("How much do you want to bet?")
                     try:
-                        bet = int(bet)
-                        tBet += player[i].bet(bet)
+                        playerBets[i] += int(input("Enter how much to raise the current bet (int): "))
                         break
                     except:
-                        print("Invalid input. Please enter only a number.")
-        else:
-            action = input("Do you want to call/raise (1) or fold (0)?")
-            if action == '1':
-                while True:
-                    nRaise = input("Enter the amount you would like to raise (>=0). If you call, enter 0")
-                    try: 
-                        nRaise = int(nRaise)
-                        if nRaise < 0:
-                            continue
-                        tBet += player[i].bet(tBet+nRaise-player[i].curBet)
-                        break
-                    except:
-                        print("Invalid input. Please enter only a number.")
+                        print("Invalid input. Try again.")
+                currentBet = playerBets[i]
+            #match/raise/fold
             else:
-                player[i].fold = True
+                print("Would you like to raise/match the current bet or fold?")
+                print(f"To meet the current bet you must enter at least {currentBet-playerBets[i]}")
+                while True:
+                    try:
+                        choice = input("Enter f for fold or enter the amount of your bet for raise/match: ")
+                        #Make sure they are betting an int
+                        x = int(choice)
+                        #Make sure they bet the minimum to match
+                        if x < currentBet-playerBets[i]:
+                            print("Bet is lower than the minimum bet")
+                            raise Exception("Bet is lower than the minimum bet")
+                        break
+                    except:
+                        #If its not a number than the player's input is either folding or invalid
+                        #Folding
+                        if choice[0].lower() == 'f':
+                            print("You folded")
+                            #DO: implement pulling playerBet from player's money 
+                            playersIn[i] = 0
+                            #See if there's only one player left
+                            if sum(playersIn) == 1:
+                                print("We have a winner")
+                                return roundPot
+                            #Use this so we skip rest of for loop
+                            didFold = True
+                            break
+                        #Invalid, stuck in while loop until valid input is given (f or big enough number)
+                        print(f"This is either an invalid input or below {currentBet-playerBets[i]}. Try again")
+                #Get out of the for loop immediately if the player folded and move to next player
+                if didFold:
+                    continue
+                #Once we determine that the raise is valid add it to their current bet. 
+                playerBets[i] += x
+                #Update current bet (if might be unecessary)
+                if playerBets[i] > currentBet:
+                    currentBet = playerBets[i]
 
-def playRound(Game, hand, round):
-    tBet = 0
-    player = Game.players
-    for i in range(Game.nPlayers):
-        player[i].curBet = 0
-    #each turn
-    for i in [list(range(hand, Game.nPlayers))+list(range(0, hand))]:
-        if not player[i].fold:
-            playTurn(Game, hand, round, tBet, i)
+            #build an array of everyone's current bet that is still in
+            playerBetsIn = []
+            for i, isIn in enumerate(playersIn):
+                if isIn:
+                    playerBetsIn.append(playerBets[i])
+            #As long as its not the first turn (all zeros), we end the round if everyone's bet is the same
+            if all(x==currentBet and not x==0 for x in playerBetsIn):
+                return roundPot
+        #If everyone's bet is the same by the last turn (they all checked) end the round
+        if all(x==currentBet for x in playerBetsIn):
+            return roundPot
 
-def playHand(Game, hand):
-    #decide ante, dealer, and blinds
-    player = Game.players
-    print(f"{player[hand-1].name} is the dealer.")
-    print(f"{player[hand].name} is the big blind.")
-    pot = 0
-    #everyone draws cards
-    for i in range(Game.nPlayers):
-        #draw 2 cards
-        player[i].draw()
-    #for each round
-    for round in range(5):
-        playRound(Game, hand, round)
+print(round(makePlayers(3, 100)))
 
-    # Round 1
-    # Round 2 
-    # Reveal 3 cards to each player
-    # for each turn
-    #reveal your cards
-    # Bet or check/fold
-
-    # Round 3
-    # Reveal 4th card
-    # for each turn
-    #reveal your cards
-    # Bet or check/fold
-
-    # Round 4
-    # Reveal 5th card
-    # for each turn
-    #reveal your cards
-    # Bet or check/fold
-
-    # Round 5
-    # for each turn
-    #reveal your cards
-    # Bet or check/fold
-
-    # Reveal remaining players' cards
-    # Determine the winner
-    # award winner with pot
-    #Anyone with no chips is out
