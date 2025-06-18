@@ -26,6 +26,7 @@ class Player:
             self.money = money
         else:
             raise TypeError("money must be an integer")
+        self.allIn = False
     def __str__(self):
         return f"{self.name} has {self.money} left."
     def bet(self, amount):
@@ -39,7 +40,8 @@ class Player:
                 print("You are all in.")
                 amount = self.money
                 self.money = 0
-                return (amount, True)
+                self.allIn=True
+                return amount
             else: 
                 print("You bet nothing.")
                 return 0
@@ -61,10 +63,13 @@ def makePlayers(numPlayers, startMoney=0):
     return players
 
 def round(players):
-    roundPot=0
     currentBet=0
     playerBets = [0] * len(players)
     playersIn = [1] * len(players)
+
+    #Make sure all-in is reset
+    for player in players:
+        player.allIn = False
 
     while True:
         for i, player in enumerate(players):
@@ -73,11 +78,9 @@ def round(players):
             # oppertunity to bet even if all the bets are the same (as those conditions are skipped).
             #Maybe make it not so?
 
-            #If you folded you dont get a turn
+            #If you arent in (folded or all in) you dont get a turn
             if not playersIn[i]:
                 continue
-            #Update the pot with everyone's bets
-            roundPot = sum(playerBets)
             #Reset this in case the last player folded
             didFold = False
 
@@ -92,17 +95,16 @@ def round(players):
                 print("You can bet (enter a number>0) or check (enter 0)?")
                 while True:
                     try:
-                        amount = int(input("Enter how much to raise the current bet (int): "))
-                        playerBets[i] += amount
+                        x = int(input("Enter how much to raise the current bet (int): "))
                         break
                     except:
                         print("Invalid input. Try again.")
-                player.bet(amount)
+                playerBets[i] += player.bet(x)
                 currentBet = playerBets[i]
             #match/raise/fold
             else:
                 print("Would you like to raise/match the current bet or fold?")
-                print(f"To meet the current bet you must enter at least {currentBet-playerBets[i]}")
+                print(f"To meet the current bet you must enter at least {currentBet-playerBets[i]}. If you are going all in just enter the minimum bet")
                 while True:
                     try:
                         choice = input("Enter f for fold or enter the amount of your bet for raise/match: ")
@@ -120,21 +122,29 @@ def round(players):
                             print("You folded")
                             playersIn[i] = 0
                             #See if there's only one player left
-                            if sum(playersIn) == 1:
-                                print("We have a winner")
-                                return roundPot
+                            if sum(playersIn) <= 1:
+                                print("We can determine a winner")
+                                #IMPLEMENT: this should break through an outer game loop
+                                return sum(playerBets)
                             #Use this so we skip rest of for loop
                             didFold = True
                             break
                         #Invalid, stuck in while loop until valid input is given (f or big enough number)
                         print(f"This is either an invalid input or below {currentBet-playerBets[i]}. Try again")
+                playerBets[i] += player.bet(x)
+                #if the player is all-in is similar process to folding.
+                if player.allIn:
+                    playersIn[i] = 0
+                    #See if there's only one player left
+                    if sum(playersIn) == 1:
+                        print("We can determine a winner")
+                        #IMPLEMENT: this should break through an outer game loop
+                        return sum(playerBets)
+                    continue
                 #Get out of the for loop immediately if the player folded and move to next player
                 if didFold:
                     continue
                 #Once we determine that the raise is valid add it to their current bet. 
-                playerBets[i] += x
-                #Update current bet 
-                player.bet(x)
                 currentBet = playerBets[i]
 
             print(*players)
@@ -145,14 +155,14 @@ def round(players):
                     playerBetsIn.append(playerBets[i])
             #As long as its not the first turn (all zeros), we end the round if everyone's bet is the same
             if all(x==currentBet and not x==0 for x in playerBetsIn):
-                return roundPot
+                return sum(playerBets)
         #If everyone's bet is the same by the last turn (they all checked) end the round
         if all(x==currentBet for x in playerBetsIn):
-            return roundPot
+            return sum(playerBets)
 
 def game(players):
     pass
 
 #Testing
-print(round(makePlayers(3, 100)))
+print(round(makePlayers(3)))
 
