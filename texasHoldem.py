@@ -92,10 +92,12 @@ def round(players):
                 print("You can bet (enter a number>0) or check (enter 0)?")
                 while True:
                     try:
-                        playerBets[i] += int(input("Enter how much to raise the current bet (int): "))
+                        amount = int(input("Enter how much to raise the current bet (int): "))
+                        playerBets[i] += amount
                         break
                     except:
                         print("Invalid input. Try again.")
+                player.bet(amount)
                 currentBet = playerBets[i]
             #match/raise/fold
             else:
@@ -116,7 +118,6 @@ def round(players):
                         #Folding
                         if choice[0].lower() == 'f':
                             print("You folded")
-                            #DO: implement pulling playerBet from player's money 
                             playersIn[i] = 0
                             #See if there's only one player left
                             if sum(playersIn) == 1:
@@ -132,10 +133,11 @@ def round(players):
                     continue
                 #Once we determine that the raise is valid add it to their current bet. 
                 playerBets[i] += x
-                #Update current bet (if might be unecessary)
-                if playerBets[i] > currentBet:
-                    currentBet = playerBets[i]
+                #Update current bet 
+                player.bet(x)
+                currentBet = playerBets[i]
 
+            print(*players)
             #build an array of everyone's current bet that is still in
             playerBetsIn = []
             for i, isIn in enumerate(playersIn):
@@ -148,5 +150,9 @@ def round(players):
         if all(x==currentBet for x in playerBetsIn):
             return roundPot
 
+def game(players):
+    pass
+
+#Testing
 print(round(makePlayers(3, 100)))
 
