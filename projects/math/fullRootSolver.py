@@ -1,9 +1,9 @@
 from sympy import *
 
-x = symbols('x')
+[x, y] = symbols('x y')
 
-#2x^{4}-9x^{3}+3x^{2}+4
-equation = Eq(2*x**4-9*x**3+3*x**2+4, 0)
+#2\cos\left(x\right)\left(\sec^{2}\left(\sin\left(x\right)\right)\tan\left(\sin\left(x\right)\right)+6e^{\sin\left(x\right)}\right)
+equation = Eq(2*cos(x)*((sec(sin(x)))**2*tan(sin(x))+6*exp(sin(x))), 0)
 
 solutions = solve(equation, x)
 
