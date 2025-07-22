@@ -1,9 +1,10 @@
 from sympy import *
 
-[x, y] = symbols('x y')
+x = symbols('x')
 
-#2\cos\left(x\right)\left(\sec^{2}\left(\sin\left(x\right)\right)\tan\left(\sin\left(x\right)\right)+6e^{\sin\left(x\right)}\right)
-equation = Eq(2*cos(x)*((sec(sin(x)))**2*tan(sin(x))+6*exp(sin(x))), 0)
+#F\left(x\right)=\frac{1}{6}\ln\left(1-x^{6}\right)-\ln\left(x\right)+C
+C = -(1/6)*ln(63/64)+ln(1/2)
+equation = Eq((1/6)*ln(1-x**6)-ln(x)+C, 0)
 
 solutions = solve(equation, x)
 
