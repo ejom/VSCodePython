@@ -1,9 +1,15 @@
 from sympy import *
-from sympy.abc import x, y, z, a
-f_x = Eq(y**2+sin(z)*exp(x*sin(z))-2*a*x, 0)
-f_y = Eq(2*x*y-2*a*y, 0)
-f_z = Eq(x*cos(z)*exp(x*sin(z))-2*a*z, 0)
-g = Eq(x**2+y**2+z**2, 4)
-solutions = solve([f_x, f_y, f_z, g], x, y, z, a, dict=True)
+from sympy.abc import a, b, c, d, f, g, h, i, j
+def fun(x):
+    sumn = 0
+    for n in range(x-1):
+        if n:
+            sumn+= 1/n**2
+    return (a+b*x+c*x**2+d*x**3)/(f+g*x+h*x**2+i*x**3+j*x**4)+pi**2/6 - sumn
+
+numEqs = 9
+equations = [Eq(fun(X), 0) for X in range(1, numEqs+1)]
+
+solutions = solve(equations, a, b, c, d, f, g, h, i, j, dict=True)
 print(solutions)
 

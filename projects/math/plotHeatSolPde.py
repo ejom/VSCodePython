@@ -3,20 +3,17 @@ from scipy.integrate import quad
 import matplotlib.pyplot as plt
 
 # Parameters
-k = 2.3e-5        # thermal diffusivity
-M = 1000          # number of modes
-L = 3.0           # domain length
-t_val = 3600.0       # time at which to evaluate
+k_vals = [23e-6, 40e-6, 97e-6, 127e-6]
+M = 1000       # number of modes
+L = 1           # domain length
+t_val = 1000      # time at which to evaluate
 
 # Define functions
 def f(x):
-    return x**2 * np.sin(np.pi * x / 3) * np.cos(np.pi * x)
+    return 1000*np.exp(-x)*np.sin(x)
 
 def P(x, n):
-    return np.cos(n * np.pi * x / L)
-
-# Compute A0
-A0 = (1 / L) * quad(f, 0, L)[0]
+    return np.sin(n * np.pi * x / L)
 
 # Pre-compute An coefficients
 def An(n):
@@ -26,27 +23,28 @@ def An(n):
 A_n_vals = np.array([An(n) for n in range(1, M+1)])
 
 # Build u(x, t) vectorized
+def u_eq(x):
+    return (f(L)-f(0))*x/L+f(0)
 def u(x, t):
+    u_sol = []
     x = np.asarray(x)
-    modes = np.array([
-        A_n_vals[n-1] * P(x, n) * np.exp(-k * t * (n * np.pi / L)**2)
-        for n in range(1, M+1)
-    ])
-    return A0 + np.sum(modes, axis=0)
+    for k in k_vals:
+        modes = np.array([
+            A_n_vals[n-1] * P(x, n) * np.exp(-k * t * (n * np.pi / L)**2)
+            for n in range(1, M+1)
+        ])
+        u_sol.append(np.sum(modes, axis=0)+u_eq(x))
+    return u_sol
 
-# Evaluate and plot u(x, 1) over x ∈ [0, 3]
-x_vals = np.linspace(0, 3, 3000)
-u_vals = u(x_vals, t_val)
+x_vals = np.linspace(0, 1, 1000)
+u_p_vals = u(x_vals, t_val)
 
-max_u = max(u_vals)
-print("MAX VALUE OF u(x, 1)")
-print(max_u)
+for u_p_sol in u_p_vals:
+    max_u = max(u_p_sol)
+    print("MAX VALUE diff OF u(x, 1000)")
+    print(max_u)
 
-# Plot
-plt.figure()
-plt.plot(x_vals, u_vals)
-plt.xlabel('x')
-plt.ylabel('u(x, 1)')
-plt.title('Temperature Profile at t = 1 s with Maximum Highlighted')
-plt.grid(True)
+
+
+plt.plot(x_vals, u_p_vals[0])
 plt.show()
