@@ -43,6 +43,8 @@ plt.subplot(2, 1, 1)
 plt.scatter(amp_snr_df['peak_time'], amp_snr_df['amplitude'])
 
 plt.scatter(upper_amp_snr_df['peak_time'], upper_amp_snr_df['amplitude'], c='r')
+plt.ylabel('Amplitude')
+plt.xlabel('Peak Time')
 plt.scatter(extr_amp_df['peak_time'], extr_amp_df['amplitude'], c='g')
 plt.scatter(spec_amp_df['peak_time'], spec_amp_df['amplitude'], c='b')
 plt.scatter(vspec_amp_snr_df['peak_time'], vspec_amp_snr_df['amplitude'], c='black')
@@ -60,7 +62,8 @@ for t, A in zip(extr_amp_df['peak_time'], extr_amp_df['amplitude']):
 
 plt.subplot(2, 1, 2)
 plt.scatter(amp_snr_df['peak_time'], amp_snr_df['snr'])
-
+plt.ylabel('Sound to Noise Ratio')
+plt.xlabel('Peak Time')
 plt.scatter(upper_amp_snr_df['peak_time'], upper_amp_snr_df['snr'], c='r')
 plt.scatter(extr_snr_df['peak_time'], extr_snr_df['snr'], c='g')
 plt.scatter(spec_snr_df['peak_time'], spec_snr_df['snr'], c='b')
